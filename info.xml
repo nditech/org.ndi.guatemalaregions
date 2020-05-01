@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<extension key="org.ndi.guatemalaregions" type="module">
+  <file>guatemalaregions</file>
+  <name>Guatemala Regions Loader</name>
+  <description>Loads departments and municipalities of Guatemala</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>NDI</author>
+    <email>info@ndi.org</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://github.com/nditech/org.ndi.guatemalaregions/</url>
+    <url desc="Documentation">https://github.com/nditech/org.ndi.guatemalaregions/</url>
+    <url desc="Support">https://github.com/nditech/org.ndi.guatemalaregions/</url>
+    <url desc="Licensing">https://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2020-05-01</releaseDate>
+  <version>1.0</version>
+  <develStage>stable</develStage>
+  <compatibility>
+    <ver>5.0</ver>
+  </compatibility>
+  <comments>Use this extension to load state/provinces and counties for Chile. After installation, this extension does nothing (and can even be disabled).</comments>
+  <classloader>
+    <psr4 prefix="Civi\" path="Civi"/>
+  </classloader>
+  <civix>
+    <namespace>CRM/Guatemalaregions</namespace>
+  </civix>
+</extension>
