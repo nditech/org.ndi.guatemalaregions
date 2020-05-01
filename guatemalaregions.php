@@ -13,57 +13,14 @@ function guatemalaregions_civicrm_config(&$config) {
 }
 
 /**
- * Implements hook_civicrm_xmlMenu().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_xmlMenu
- */
-function guatemalaregions_civicrm_xmlMenu(&$files) {
-  _guatemalaregions_civix_civicrm_xmlMenu($files);
-}
-
-/**
- * Implements hook_civicrm_install().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_install
- */
-function guatemalaregions_civicrm_install() {
-  _guatemalaregions_civix_civicrm_install();
-}
-
-/**
- * Implements hook_civicrm_postInstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_postInstall
- */
-function guatemalaregions_civicrm_postInstall() {
-  _guatemalaregions_civix_civicrm_postInstall();
-}
-
-/**
- * Implements hook_civicrm_uninstall().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_uninstall
- */
-function guatemalaregions_civicrm_uninstall() {
-  _guatemalaregions_civix_civicrm_uninstall();
-}
-
-/**
  * Implements hook_civicrm_enable().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_enable
  */
 function guatemalaregions_civicrm_enable() {
   _guatemalaregions_civix_civicrm_enable();
-}
 
-/**
- * Implements hook_civicrm_disable().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_disable
- */
-function guatemalaregions_civicrm_disable() {
-  _guatemalaregions_civix_civicrm_disable();
+  guatemalaregions_load_regions();
 }
 
 /**
@@ -76,10 +33,69 @@ function guatemalaregions_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
 }
 
 /**
- * Implements hook_civicrm_alterSettingsFolders().
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_alterSettingsFolders
+ * Load regions from the CSV file.
  */
-function guatemalaregions_civicrm_alterSettingsFolders(&$metaDataFolders = NULL) {
-  _guatemalaregions_civix_civicrm_alterSettingsFolders($metaDataFolders);
+function guatemalaregions_load_regions() {
+  // Fix existing state/provinces
+  // @todo Submit a fix upstream?
+  $state_province_fixes = [
+    'Quiche' => 'Quiché',
+    'Peten' => 'Petén',
+    'Suchitepequez' => 'Suchitepéquez',
+    'Totonicapan' => 'Totonicapán',
+  ];
+
+  $country_id = civicrm_api3('Country', 'getsingle', [
+    'name' => 'Guatemala',
+  ])['id'];
+
+  foreach ($state_province_fixes as $old => $new) {
+    CRM_Core_DAO::executeQuery('UPDATE civicrm_state_province SET name = %1 WHERE name = %2 AND country_id = %3', [
+      1 => [$new, 'String'],
+      2 => [$old, 'String'],
+      3 => [$country_id, 'Positive'],
+    ]);
+  }
+
+  // Get all the state_provinces
+  $stateProvince = CRM_Core_PseudoConstant::stateProvinceForCountry($country_id, FALSE);
+
+  $cpt = 0;
+  $path = Civi::resources()->getPath(E::LONG_NAME, '/guatemalaregions.csv');
+  $handle = fopen($path, 'r');
+
+  if (!$handle) {
+    throw new Exception('Failed to read guatemalaregions.csv');
+  }
+
+  while (($row = fgetcsv($handle, 1000, ',')) !== FALSE) {
+    $cpt++;
+
+    // First row contains headers
+    if ($cpt == 1) {
+      continue;
+    }
+
+    // Get the state_province_id associated to the name
+    $state_province_id = array_search($row[0], $stateProvince);
+
+    if ($state_province_id === FALSE) {
+      throw new Exception('State/province not found: ' . $row[0]);
+    }
+
+    // Check if the county already exists
+    $county_id = CRM_Core_DAO::singleValueQuery('SELECT id FROM civicrm_county WHERE name = %1 AND state_province_id = %2', [
+      1 => [$row[1], 'String'],
+      2 => [$state_province_id, 'Positive'],
+    ]);
+
+    if (!$county_id) {
+      CRM_Core_DAO::executeQuery('INSERT INTO civicrm_county(name, state_province_id) VALUES (%1, %2)', [
+        1 => [$row[1], 'String'],
+        2 => [$state_province_id, 'Positive'],
+      ]);
+    }
+  }
+
+  fclose($handle);
 }
