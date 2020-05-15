@@ -6,7 +6,7 @@
   <license>AGPL-3.0</license>
   <maintainer>
     <author>NDI</author>
-    <email>info@ndi.org</email>
+    <email>nditech@ndi.org</email>
   </maintainer>
   <urls>
     <url desc="Main Extension Page">https://github.com/nditech/org.ndi.guatemalaregions/</url>
@@ -20,7 +20,7 @@
   <compatibility>
     <ver>5.0</ver>
   </compatibility>
-  <comments>Use this extension to load state/provinces and counties for Chile. After installation, this extension does nothing (and can even be disabled).</comments>
+  <comments>Use this extension to load state/provinces and counties for Guatemala. After installation, this extension does nothing (and can even be disabled).</comments>
   <classloader>
     <psr4 prefix="Civi\" path="Civi"/>
   </classloader>
